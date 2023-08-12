@@ -15,5 +15,8 @@
 //#define INT16_T pha:pha
 //#define POINTER pha:pha
 	
-//#define LOCVAR(n) $fd-n,x	; downward in memory: FUNARG(1) can be a pointer
+#define VAR0LOC	!$00fd,x
+//#define V0STA sta !$00fd	; downward in memory: FUNARG(1) can be a pointer
+//#define V0ORA ora !$00fd	; downward in memory: FUNARG(1) can be a pointer
+//#define V0LSR lsr !$00fd	; downward in memory: FUNARG(1) can be a pointer
 #define POPVARS lda $100,x:tax:dex:dex:txs ; undoes stack variables before rts
