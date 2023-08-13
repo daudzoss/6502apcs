@@ -57,9 +57,8 @@
 #define UINT16_T pha:pha
 #define INT16_T pha:pha
 #define POINTER pha:pha
-#define ADRL(n,x) txa:clc:adc #($ff&(n))
-#define ADRH(n,x) lda #0:adc #((n)>>8)
-#define ADR(n,x) ADRL(n,x):tay:ADRH(n,x)
+#define ADRLV(n) txa : clc : adc #$fe-n
+#define ADRHV lda #0 : adc #$1
 #define DEREF(n,x,z) ADRL(n,x):sta z:ADRH(n,x,z):sta z+1:ldy #0:lda (z),y
 #define ARRAY8(n) txa:tay:tsx:txa:sec:sbc #n:tax:txs:tya:tax
 #define ARRAY16(n) txa:tay:tsx:txa:sec:sbc #n:sbc #n:tax:txs:tya:tax
