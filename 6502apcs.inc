@@ -61,8 +61,8 @@
 #define ADRHA lda #1
 #define ADRLV(n) txa : clc : adc #$fe-n
 #define ADRLA(n) txa : clc : adc #$02+n
-#define DEREFV(n,z) ADRLV(n):sta z:ADRHV:sta z+1:ldy #0:lda (z),y
-#define DEREFA(n,z) ADRLA(n):sta z:ADRHA:sta z+1:ldy #0:lda (z),y
+#define DERV(n,z) ADRLV(n):sta z:lda #1:sta z+1:ldy #0:lda (z),y
+#define DERA(n,z) ADRLA(n):sta z:lda #1:sta z+1:ldy #0:lda (z),y
 #define ARRAY8(n) txa:tay:tsx:txa:sec:sbc #n:tax:txs:tya:tax
 #define ARRAY16(n) txa:tay:tsx:txa:sec:sbc #n:sbc #n:tax:txs:tya:tax
 
