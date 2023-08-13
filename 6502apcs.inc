@@ -58,8 +58,11 @@
 #define INT16_T pha:pha
 #define POINTER pha:pha
 #define ADRHV lda #1
+#define ADRHA lda #1
 #define ADRLV(n) txa : clc : adc #$fe-n
-#define DEREFV(n,z) ADRLV(n):sta z:ADRH:sta z+1:ldy #0:lda (z),y
+#define ADRLA(n) txa : clc : adc #$02+n
+#define DEREFV(n,z) ADRLV(n):sta z:ADRHV:sta z+1:ldy #0:lda (z),y
+#define DEREFA(n,z) ADRLA(n):sta z:ADRHA:sta z+1:ldy #0:lda (z),y
 #define ARRAY8(n) txa:tay:tsx:txa:sec:sbc #n:tax:txs:tya:tax
 #define ARRAY16(n) txa:tay:tsx:txa:sec:sbc #n:sbc #n:tax:txs:tya:tax
 
@@ -69,9 +72,11 @@
 #define uint16_t UINT16_T
 #define int16_t INT16_T
 #define pointer POINTER
+#define adrhv ADRHV
+#define adrha ADRHA
 #define adrlv(n) ADRLV(n)
-#define adrhv ADRH
 #define derefv(n,z) DEREFV(n,z)
+#define derefa(n,z) DEREFA(n,z)
 #define array8(n) ARRAY8(n)
 #define array16(n) ARRAY16(n)
 
