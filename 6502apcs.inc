@@ -36,13 +36,17 @@
 #define A7FUNCT $0109,x
 #define A8FUNCT $010a,x
 #define A9FUNCT $010b,x
-
+#define AaFUNCT $010c,x
+#define AbFUNCT $010d,x
+#define AcFUNCT $010e,x
+#define AdFUNCT $010f,x
+	
 ;;;// Only use traditional jsr and rts alone when no args passed nor local vars
 ;;;// 
 ;;;// These clobber both a and x, so recommend y as a quick stackless arg/retval
 ;;;// or otherwise A0FUNCT is a good pointer to a multi-byte result.
 ;;;// Also do FUNCALL before the body of main() so that it can use stack vars
-	
+
 #define FUNCALL txa:pha:tsx	;// then jump to subroutine with x,sp saved
 	;;// jsr func
 #define FUNRETN pla:tax		;// done immediately after rts from that jsr
@@ -53,14 +57,20 @@
 #define UINT16_T pha:pha
 #define INT16_T pha:pha
 #define POINTER pha:pha
-	
+#define ADDR(n,x) n	
+#define ARRAY8(n) txa:tay:tsx:txa:sec:sbc #n:tax:txs:tya:tax
+#define ARRAY16(n) txa:tay:tsx:txa:sec:sbc #n:sbc #n:tax:txs:tya:tax
+
 ;;;// Lowercase versions of the above
 #define	uint8_t UINT8_T
 #define int8_t INT8_T
 #define uint16_t UINT16_T
 #define int16_t INT16_T
 #define pointer POINTER
-	
+#define addr(n,x) ADDR(N,X)
+#define array8(n) ARRAY8(n)
+#define array16(n) ARRAY16(n)
+
 ;;;// local stack variables proceed downward in memory: V1LOCAL can be pointer etc
 #define V0LOCAL	!$00fe,x
 #define V1LOCAL !$00fd,x
@@ -72,5 +82,10 @@
 #define V7LOCAL !$00f7,x	
 #define V8LOCAL !$00f6,x	
 #define V9LOCAL !$00f5,x	
-
+#define VaLOCAL !$00f4,x
+#define VbLOCAL !$00f3,x
+#define VcLOCAL !$00f2,x
+#define VdLOCAL !$00f1,x
+#define VeLOCAL !$00f0,x
+	
 #define POPVARS dex:dex:txs ;// undoes variable stack before rts (sp=x=0x00fe+x)
