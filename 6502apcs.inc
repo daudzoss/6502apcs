@@ -6,9 +6,9 @@
 ;;;// immediately afterward in order so that the same holds true again for the
 ;;;// calling function to do the same when it returns
 ;;;//
-;;;// $0100|SP'' = $0102+x | second of arg to func(a0funct, a1funct,..)
+;;;// $0100|SP'' = $0102+x | arg #1 to func(a0funct, a1funct,..)
 ;;;//                      +-------------------------------------------
-;;;//              $0102+X | first of args to func(a0funct, a1funct,..) 
+;;;//              $0102+X | arg #0 to func(a0funct, a1funct,..) 
 ;;;//                      +-------------------------------------------
 ;;;//              $0101+X | old value of X e.g. SP'' from a prior time
 ;;;//                      +-------------------------------------------
@@ -57,7 +57,10 @@
 #define UINT16_T pha:pha
 #define INT16_T pha:pha
 #define POINTER pha:pha
-#define ADDR(n,x) n	
+#define ADRL(n,x) txa:clc:adc #($ff&(n))
+#define ADRH(n,x) lda #0:adc #((n)>>8)
+#define ADR(n,x) ADRL(n,x):tay:ADRH(n,x)
+#define DEREF(n,x,z) ADRL(n,x):sta z:ADRH(n,x,z):sta z+1:ldy #0:lda (z),y
 #define ARRAY8(n) txa:tay:tsx:txa:sec:sbc #n:tax:txs:tya:tax
 #define ARRAY16(n) txa:tay:tsx:txa:sec:sbc #n:sbc #n:tax:txs:tya:tax
 
@@ -67,7 +70,10 @@
 #define uint16_t UINT16_T
 #define int16_t INT16_T
 #define pointer POINTER
-#define addr(n,x) ADDR(N,X)
+#define adrl(n,x) ADRL(N,X)
+#define adrh(n,x) ADRH(N,X)
+#define adr(n,x) ADR(N,X)
+#define deref(n,x,z) DEREF(n,x,z)
 #define array8(n) ARRAY8(n)
 #define array16(n) ARRAY16(n)
 
