@@ -97,4 +97,7 @@
 #define VdLOCAL !$00f1,x
 #define VeLOCAL !$00f0,x
 	
-#define POPVARS dex:dex:txs ;// undoes variable stack before rts (sp=x=0x00fe+x)
+;;;//undoes stack variable allocations and arguments on stack before rts
+;;;// (sp=x=0x00fe+x) or just whenever cleanup is necessary
+#define POPVARS dex:dex:txs
+#define DONTRTS inx:inx		;// if just doing it for stack cleanup not rts
