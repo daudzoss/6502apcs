@@ -64,7 +64,7 @@
 #define DERV(n,z) /*lda #1:sta z+1:*/ADRLV(n):sta z:lda (z),y
 #define DERA(n,z) /*lda #1:sta z+1:*/ADRLA(n):sta z:lda (z),y
 #define ARRAY8(n) txa:tay:tsx:txa:sec:sbc #n:tax:txs:tya:tax
-#define ARRAY16(n) txa:tay:tsx:txa:sec:sbc #n:sbc #n:tax:txs:tya:tax
+#define ARRAY16(n) txa:tay:tsx:txa:sec:sbc #n<<1:tax:txs:tya:tax
 
 ;;;// Lowercase versions of the above
 #define	uint8_t UINT8_T
