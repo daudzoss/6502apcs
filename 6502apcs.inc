@@ -96,6 +96,7 @@
 #define VcLOCAL !$00f2,x
 #define VdLOCAL !$00f1,x
 #define VeLOCAL !$00f0,x
+#define VfLOCAL !$00ef,x
 	
 ;;;//undoes stack variable allocations and arguments on stack before rts
 ;;;// (sp=x=0x00fe+x) or just whenever cleanup is necessary
