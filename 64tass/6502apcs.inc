@@ -26,20 +26,20 @@
 ;;;// 
 ;;;// Arguments to functions (and pointers for possible return values) proceed
 ;;;// upward in memory: A0FUNCT, A2FUNCT can be such pointers etc
-#define A0FUNCT $0102,x
-#define A1FUNCT $0103,x
-#define A2FUNCT $0104,x
-#define A3FUNCT $0105,x
-#define A4FUNCT $0106,x
-#define A5FUNCT $0107,x
-#define A6FUNCT $0108,x
-#define A7FUNCT $0109,x
-#define A8FUNCT $010a,x
-#define A9FUNCT $010b,x
-#define AaFUNCT $010c,x
-#define AbFUNCT $010d,x
-#define AcFUNCT $010e,x
-#define AdFUNCT $010f,x
+A0FUNCT	= $0102,x
+A1FUNCT	= $0103,x
+A2FUNCT	= $0104,x
+A3FUNCT	= $0105,x
+A4FUNCT	= $0106,x
+A5FUNCT	= $0107,x
+A6FUNCT	= $0108,x
+A7FUNCT	= $0109,x
+A8FUNCT	= $010a,x
+A9FUNCT	= $010b,x
+AaFUNCT	= $010c,x
+AbFUNCT	= $010d,x
+AcFUNCT	= $010e,x
+AdFUNCT	= $010f,x
 	
 ;;;// Only use traditional jsr and rts alone when no args passed nor local vars
 ;;;// 
@@ -47,53 +47,58 @@
 ;;;// or otherwise A0FUNCT is a good pointer to a multi-byte result.
 ;;;// Also do FUNCALL before the body of main() so that it can use stack vars
 
-#define FUNCALL txa:pha:tsx	;// then jump to subroutine with x,sp saved
-	;;// jsr func
-#define FUNRETN pla:tax		;// done immediately after rts from that jsr
-
+FUNCALL	= .byte $8a,$48,$ba	;// then jump to subroutine with x,sp saved
+	;;// $8a=txa
+	;;// $48=pha
+	;;// $ba=tsx
+	;;// jsr func	
+FUNRETN	= .byte $68,$aa		;// done immediately after rts from that jsr
+	;;// $68=pla
+	;;// $aa=tax
+	
 ;;;// Useful both before a FUNCALL (to push AnFUNCT) or after (for VnLOCAL)
-#define UINT8_T pha
-#define INT8_T pha
-#define UINT16_T pha:pha
-#define INT16_T pha:pha
-#define POINTER pha:pha
-#define ADRHV lda #1
-#define ADRHA lda #1
-#define ADRLV(n) txa : clc : adc #$fe-n
-#define ADRLA(n) txa : clc : adc #$02+n
-#define DEREF(z) sta z:lda (z)
+UINT8_T	= .byte $48		;// $48=pha
+INT8_T	= .byte $48		;// $48=pha
+UINT16_T = .byte $48,$48	;// $48=pha
+INT16_T	= .byte $48,$48		;// $48=pha
+POINTER	= .byte $48,$48		;// $48=pha
+ADRHV	= .byte $a9,$01		;// $a9=lda#
+ADRHA	= .byte $a9,$01		;// $a9=lda#
+ADRLV	= .byte $8a,$18,$69,$fe-;// $8a=txa : $18=clc : $69=adc#
+ADRLA	= .byte $8a,$18,$69,$02+;// $8a=txa : $18=clc : $69=adc#
+DEREF	= .byte $8a,$18,$69,$fe-;// $8a=txa : $18=clc : $69=adc# : $=sta :$b1=lda (z),y
 
 ;;;// Lowercase versions of the above
-#define	uint8_t UINT8_T
-#define int8_t INT8_T
-#define uint16_t UINT16_T
-#define int16_t INT16_T
-#define pointer POINTER
-#define adrhv ADRHV
-#define adrha ADRHA
-#define adrlv(n) ADRLV(n)
-#define adrla(n) ADRLA(n)
-#define deref(z) DEREF(z)
+uint8_t	= UINT8_T
+int8_t	= INT8_T
+uint16_t = UINT16_T
+int16_t	= INT16_T
+pointer	= POINTER
+adrhv	= ADRHV
+adrha	= ADRHA
+adrlv	= ADRLV
+adrla	= ADRLA
+deref	= DEREF
 
 ;;;// local stack variables proceed downward in memory: V1LOCAL can be pointer etc
-#define V0LOCAL	!$00fe,x
-#define V1LOCAL !$00fd,x
-#define V2LOCAL !$00fc,x	
-#define V3LOCAL !$00fb,x	
-#define V4LOCAL !$00fa,x	
-#define V5LOCAL !$00f9,x	
-#define V6LOCAL !$00f8,x	
-#define V7LOCAL !$00f7,x	
-#define V8LOCAL !$00f6,x	
-#define V9LOCAL !$00f5,x	
-#define VaLOCAL !$00f4,x
-#define VbLOCAL !$00f3,x
-#define VcLOCAL !$00f2,x
-#define VdLOCAL !$00f1,x
-#define VeLOCAL !$00f0,x
-#define VfLOCAL !$00ef,x
+V0LOCAL	= @w $00fe,x
+V1LOCAL	= @w $00fd,x
+V2LOCAL	= @w $00fc,x	
+V3LOCAL	= @w $00fb,x	
+V4LOCAL	= @w $00fa,x	
+V5LOCAL	= @w $00f9,x	
+V6LOCAL	= @w $00f8,x	
+V7LOCAL	= @w $00f7,x	
+V8LOCAL	= @w $00f6,x	
+V9LOCAL	= @w $00f5,x	
+VaLOCAL	= @w $00f4,x
+VbLOCAL	= @w $00f3,x
+VcLOCAL	= @w $00f2,x
+VdLOCAL	= @w $00f1,x
+VeLOCAL	= @w $00f0,x
+VfLOCAL	= @w $00ef,x
 	
 ;;;//undoes stack variable allocations and arguments on stack before rts
 ;;;// (sp=x=0x00fe+x) or just whenever cleanup is necessary
-#define POPVARS dex:dex:txs
-#define DONTRTS inx:inx		;// if just doing it for stack cleanup not rts
+POPVARS	= .byte $ca,$ca,$9a		;// $ca=dex : $9a=txs
+DONTRTS	= .byte	$e8,$e8	;// $e8=inx (if just doing it for stack cleanup not rts
