@@ -54,14 +54,41 @@
 ;;;// Useful both before a FUNCALL (to push AnFUNCT) or after (for VnLOCAL)
 #define UINT8_T pha
 #define INT8_T pha
-#define UINT16_T pha:pha
-#define INT16_T pha:pha
-#define POINTER pha:pha
-#define ADRHV lda #1
-#define ADRHA lda #1
-#define ADRLV(n) txa : clc : adc #$fe-n
-#define ADRLA(n) txa : clc : adc #$02+n
-#define DEREF(z) sta z:lda (z)
+#define UINT16_T pha : pha
+#define INT16_T pha : pha
+#define POINTER pha : pha
+#define ADRHVZP lda #1
+#define ADRHAZP lda #1
+#define ADRLV0 txa : clc : adc #$fe-0
+#define ADRLV1 txa : clc : adc #$fe-1
+#define ADRLV2 txa : clc : adc #$fe-2
+#define ADRLV3 txa : clc : adc #$fe-3
+#define ADRLV4 txa : clc : adc #$fe-4
+#define ADRLV5 txa : clc : adc #$fe-5
+#define ADRLV6 txa : clc : adc #$fe-6
+#define ADRLV7 txa : clc : adc #$fe-7
+#define ADRLV8 txa : clc : adc #$fe-8
+#define ADRLV9 txa : clc : adc #$fe-9
+#define ADRLVA txa : clc : adc #$fe-$a
+#define ADRLVB txa : clc : adc #$fe-$b
+#define ADRLVC txa : clc : adc #$fe-$c
+#define ADRLVD txa : clc : adc #$fe-$d
+#define ADRLVE txa : clc : adc #$fe-$e
+#define ADRLVF txa : clc : adc #$fe-$f
+#define ADRLA0 txa : clc : adc #$02+0
+#define ADRLA1 txa : clc : adc #$02+1
+#define ADRLA2 txa : clc : adc #$02+2
+#define ADRLA3 txa : clc : adc #$02+3
+#define ADRLA4 txa : clc : adc #$02+4
+#define ADRLA5 txa : clc : adc #$02+5
+#define ADRLA6 txa : clc : adc #$02+6
+#define ADRLA7 txa : clc : adc #$02+7
+#define ADRLA8 txa : clc : adc #$02+8
+#define ADRLA9 txa : clc : adc #$02+9
+#define ADRLAA txa : clc : adc #$02+$a
+#define ADRLAB txa : clc : adc #$02+$b
+#define ADRLAC txa : clc : adc #$02+$c
+#define ADRLAD txa : clc : adc #$02+$d
 
 ;;;// Lowercase versions of the above
 #define	uint8_t UINT8_T
