@@ -96,29 +96,67 @@
 #define uint16_t UINT16_T
 #define int16_t INT16_T
 #define pointer POINTER
-#define adrhv ADRHV
-#define adrha ADRHA
-#define adrlv(n) ADRLV(n)
-#define adrla(n) ADRLA(n)
-#define deref(z) DEREF(z)
+#define adrhvzp ADRHVZP
+#define adrhazp	ADRHAZP
+#define adrlv0 ADRLV0
+#define adrlv1 ADRLV1
+#define adrlv2 ADRLV2
+#define adrlv3 ADRLV3
+#define adrlv4 ADRLV4
+#define adrlv5 ADRLV5
+#define adrlv6 ADRLV6
+#define adrlv7 ADRLV7
+#define adrlv8 ADRLV8
+#define adrlv9 ADRLV9
+#define adrlva ADRLVA
+#define adrlvb ADRLVB
+#define adrlvc ADRLVC
+#define adrlvd ADRLVD
+#define adrlve ADRLVE
+#define adrlvf ADRLVF
+#define adrla0 ADRHA0
+#define adrla1 ADRHA1
+#define adrla2 ADRHA2
+#define adrla3 ADRHA3
+#define adrla4 ADRHA4
+#define adrla5 ADRHA5
+#define adrla6 ADRHA6
+#define adrla7 ADRHA7
+#define adrla8 ADRHA8
+#define adrla9 ADRHA9
+#define adrlaa ADRHAA
+#define adrlab ADRHAB
+#define adrlac ADRHAC
+#define adrlad ADRHAD
 
-;;;// local stack variables proceed downward in memory: V1LOCAL can be pointer etc
-#define V0LOCAL	!$00fe,x
-#define V1LOCAL !$00fd,x
-#define V2LOCAL !$00fc,x	
-#define V3LOCAL !$00fb,x	
-#define V4LOCAL !$00fa,x	
-#define V5LOCAL !$00f9,x	
-#define V6LOCAL !$00f8,x	
-#define V7LOCAL !$00f7,x	
-#define V8LOCAL !$00f6,x	
-#define V9LOCAL !$00f5,x	
-#define VaLOCAL !$00f4,x
-#define VbLOCAL !$00f3,x
-#define VcLOCAL !$00f2,x
-#define VdLOCAL !$00f1,x
-#define VeLOCAL !$00f0,x
-#define VfLOCAL !$00ef,x
+;;;// local stack variables proceed downward in memory eg V1LOCAL can be pointer
+;;;// these must all use 16-bit addressing even though they are ostensibly on zp
+#define	lda_16x lda !
+#define	sta_16x sta !
+#define ora_16x ora !
+#define lsr_16x lsr !
+#define ldy_16x ldy !
+#define cmp_16x cmp !	
+#define inc_16x inc !
+#define dec_16x dec !
+#define adc_16x adc !
+#define sbc_16x sbc !
+#define V0LOCAL	$00fe,x
+#define V1LOCAL $00fd,x
+#define V2LOCAL $00fc,x	
+#define V3LOCAL $00fb,x	
+#define V4LOCAL $00fa,x	
+#define V5LOCAL $00f9,x	
+#define V6LOCAL $00f8,x	
+#define V7LOCAL $00f7,x	
+#define V8LOCAL $00f6,x	
+#define V9LOCAL $00f5,x	
+#define VaLOCAL $00f4,x
+#define VbLOCAL $00f3,x
+#define VcLOCAL $00f2,x
+#define VdLOCAL $00f1,x
+#define VeLOCAL $00f0,x
+#define VfLOCAL $00ef,x
 	
 ;;;//undoes stack variable allocations and arguments on stack before rts
 ;;;// (sp=x=0x00fe+x) or just whenever cleanup is necessary

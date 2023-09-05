@@ -47,58 +47,69 @@ AdFUNCT	= $010f,x
 ;;;// or otherwise A0FUNCT is a good pointer to a multi-byte result.
 ;;;// Also do FUNCALL before the body of main() so that it can use stack vars
 
-FUNCALL	= .byte $8a,$48,$ba	;// then jump to subroutine with x,sp saved
-	;;// $8a=txa
-	;;// $48=pha
-	;;// $ba=tsx
+FUNCALL	.macro			;// then jump to subroutine with x,sp saved
+	txa
+	pha
+	tsx
+	.endm
 	;;// jsr func	
-FUNRETN	= .byte $68,$aa		;// done immediately after rts from that jsr
-	;;// $68=pla
-	;;// $aa=tax
+FUNRETN	.macro			;// done immediately after rts from that jsr
+	pla
+	tax
+	.endm
 	
 ;;;// Useful both before a FUNCALL (to push AnFUNCT) or after (for VnLOCAL)
-UINT8_T	= .byte $48		;// $48=pha
-INT8_T	= .byte $48		;// $48=pha
-UINT16_T = .byte $48,$48	;// $48=pha
-INT16_T	= .byte $48,$48		;// $48=pha
-POINTER	= .byte $48,$48		;// $48=pha
-ADRHV	= .byte $a9,$01		;// $a9=lda#
-ADRHA	= .byte $a9,$01		;// $a9=lda#
-ADRLV	= .byte $8a,$18,$69,$fe-;// $8a=txa : $18=clc : $69=adc#
-ADRLA	= .byte $8a,$18,$69,$02+;// $8a=txa : $18=clc : $69=adc#
-DEREF	= .byte $8a,$18,$69,$fe-;// $8a=txa : $18=clc : $69=adc# : $=sta :$b1=lda (z),y
+ADRHV	.macro
+	lda	#$01
+	sta	1+\1
+	.endm
 
-;;;// Lowercase versions of the above
-uint8_t	= UINT8_T
-int8_t	= INT8_T
-uint16_t = UINT16_T
-int16_t	= INT16_T
-pointer	= POINTER
-adrhv	= ADRHV
-adrha	= ADRHA
-adrlv	= ADRLV
-adrla	= ADRLA
-deref	= DEREF
+ADRHA	.macro
+	lda	#$01
+	sta	1+\1
+	.endm
 
-;;;// local stack variables proceed downward in memory: V1LOCAL can be pointer etc
-V0LOCAL	= @w $00fe,x
-V1LOCAL	= @w $00fd,x
-V2LOCAL	= @w $00fc,x	
-V3LOCAL	= @w $00fb,x	
-V4LOCAL	= @w $00fa,x	
-V5LOCAL	= @w $00f9,x	
-V6LOCAL	= @w $00f8,x	
-V7LOCAL	= @w $00f7,x	
-V8LOCAL	= @w $00f6,x	
-V9LOCAL	= @w $00f5,x	
-VaLOCAL	= @w $00f4,x
-VbLOCAL	= @w $00f3,x
-VcLOCAL	= @w $00f2,x
-VdLOCAL	= @w $00f1,x
-VeLOCAL	= @w $00f0,x
-VfLOCAL	= @w $00ef,x
+ADRLV	.macro
+	txa
+	clc
+	adc	#$fe-\2
+	sta	\1
+	.endm
+
+ADRLA	.macro
+	txa
+	clc
+	adc	#$02+\2
+	sta	\1
+	.endm
+
+;;;// local stack variables proceed downward in memory eg V1LOCAL can be pointer
+;;;// these must all use 16-bit indexed addressing; they are not on zero-page!!!
+V0LOCAL	= $00fe,x
+V1LOCAL	= $00fd,x
+V2LOCAL	= $00fc,x	
+V3LOCAL	= $00fb,x	
+V4LOCAL	= $00fa,x	
+V5LOCAL	= $00f9,x	
+V6LOCAL	= $00f8,x	
+V7LOCAL	= $00f7,x	
+V8LOCAL	= $00f6,x	
+V9LOCAL	= $00f5,x	
+VaLOCAL	= $00f4,x
+VbLOCAL	= $00f3,x
+VcLOCAL	= $00f2,x
+VdLOCAL	= $00f1,x
+VeLOCAL	= $00f0,x
+VfLOCAL	= $00ef,x
 	
 ;;;//undoes stack variable allocations and arguments on stack before rts
 ;;;// (sp=x=0x00fe+x) or just whenever cleanup is necessary
-POPVARS	= .byte $ca,$ca,$9a		;// $ca=dex : $9a=txs
-DONTRTS	= .byte	$e8,$e8	;// $e8=inx (if just doing it for stack cleanup not rts
+POPVARS	.macro
+	dex
+	dex
+	txs
+	.endm
+DONTRTS	.macro
+	inx
+	inx
+	.endm
