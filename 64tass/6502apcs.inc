@@ -58,7 +58,6 @@ FUNRETN	.macro			;// done immediately after rts from that jsr
 	tax
 	.endm
 	
-;;;// Useful both before a FUNCALL (to push AnFUNCT) or after (for VnLOCAL)
 ADRHV	.macro
 	lda	#$01
 	sta	1+\1
@@ -102,8 +101,10 @@ VdLOCAL	= $00f1,x
 VeLOCAL	= $00f0,x
 VfLOCAL	= $00ef,x
 	
+;;;// pha either before a FUNCALL (to push AnFUNCT) or after jsr (for VnLOCAL)
+
 ;;;//undoes stack variable allocations and arguments on stack before rts
-;;;// (sp=x=0x00fe+x) or just whenever cleanup is necessary
+;;;//(sp=x=0x00fe+x) or just whenever cleanup is necessary (by then restoring x)
 POPVARS	.macro
 	dex
 	dex
