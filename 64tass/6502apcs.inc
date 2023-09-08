@@ -45,7 +45,7 @@ AdFUNCT	= $010f,x
 ;;;// 
 ;;;// These clobber both a and x, so recommend y as a quick stackless arg/retval
 ;;;// or otherwise A0FUNCT is a good pointer to a multi-byte result.
-;;;// Also do FUNCALL before the body of main() so that it can use stack vars
+;;;// Do FUNCALL or tsx before jumping into main() so that it can use stack vars
 
 FUNCALL	.macro			;// then jump to subroutine with x,sp saved
 	txa
