@@ -18,4 +18,21 @@ mult	.macro
 	FUNRETN			;} // mult()
 	.endm
 
-domult	
+domult	lda @w	A0FUNCT	;//siz	;
+	and	#0x0f		;
+	sta @w	V0LOCAL	;//asiz	;
+	lda @w	A0FUNCT	;//siz	;
+	lsr			;
+	lsr			;
+	lsr			;
+	lsr			;
+	sta @w	V1LOCAL	;//bsiz	;
+	clc			;
+	adc @w	V0LOCAL	;//sizes;
+
+	cpy 	#$80		;
+	bcc	usmult		;
+smult
+
+usmult
+	
