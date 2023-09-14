@@ -30,18 +30,18 @@
 ;;;                      +-------------------------------------------+
 ;;;              $00fb+X |                   savey                   | V3LOCAL
 ;;;                      +-------------------------------------------+
-;;;              $00fa+X |                   sgnba                   | V4LOCAL              
+;;;              $00fa+X |                   sgnba                   | V4LOCAL
 ;;;                      +-------------------------------------------+
-;;;              $00f9+X |                   acopy?                  | V5LOCAL
+;;;              $00f9+X |                   bnon0                   | V5LOCAL
 ;;;                      +-------------------------------------------+
-;;;              $00f8+X |                   bcopy?                  | V6LOCAL
+;;;              $00f8+X |                   rtval                   | V6LOCAL
 
 
 
 
-ZPMULT = $TBD
-ZPMULB = $TBD
-ZPMULA = $TBD
+ZPMULT = $76
+ZPMULB = $78
+ZPMULA = $7a
 	
 USIGNED	= 0x00
 SIGNED	= SIGNED
@@ -89,11 +89,16 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	ldy	#0		; y = 0; // return value is zero until checks OK
 	tya			;
 	pha			; uint8_t sgnba = 0; // V4LOCAL
-	
-	;; starting address of full-width copy of a and copy of b will be cached
-	;pha			; uint8_t* acopy; // V5LOCAL
-	;pha			; uint8_t* bcopy; // V6LOCAL
+	pha			; uint8_t rtval = 0; // V6LOCAL
+	pha			; uint8_t bnon0 = 0; // V5LOCAL
 
+
+
+
+
+
+
+	
 	;; check for stack underrun: end of args must still be on page 1
 	txa			;
 	;clc			;
@@ -116,7 +121,7 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	dey			;
 	lda	(ZPMULT),y	;
 	rol			;
-	ror	sgnba		; sgnba |= (a & (1<<(asize*8 - 1))) ? 0x40 : 0;
+	ror @w	V4LOCAL	;//sgnba; sgnba |= (a & (1<<(asize*8 - 1))) ? 0x40 : 0;
 	iny			;
 -	pha			;
 	dey			;
@@ -126,14 +131,12 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	pha			;
 	tsx			;
 	txa			;
-	;tay			;
 	sta	ZPMULA	  	;
 	inc	ZPMULA		;
 	lda	#1		;
 	sta	1+ZPMULA	;
 	pla			;
 	tax			;
-	;sty @w	V5LOCAL	;//acopy; acopy = &awork[0];
 	
 	;; find MSB of b, store sign bit, allocate bsize of stack space for it
 	ldy @w	V1LOCAL	;//bsize;
@@ -143,7 +146,7 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	dey			;
 	lda	(ZPMULT),y	;
 	rol			;
-	ror	sgnba		; sgnba |= (a & (1<<(asize*8 - 1))) ? 0x80 : 0;
+	ror @w	V4LOCAL	;//sgnba; sgnba |= (a & (1<<(asize*8 - 1))) ? 0x80 : 0;
 	iny			;
 -	pha			;
 	dey			;
@@ -160,28 +163,29 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	sta	1+ZPMULB	;
 	pla			;
 	tax			;
-	;sty @w	V6LOCAL	;//bcopy; bcopy = &bwork[0];
 	
 	;; check for signed or unsigned mode
 	lda @w	V3LOCAL	;//savey;
 	and	#SIGNED		; if ((savey & SIGNED)  // signed mode requested
 	bpl	usmult		;     &&                        // and
-smult	lda @w	sgnba		;     ((a&(1<<asize*8 - 1)) ||  // a negative or
+smult	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	beq	usmult		;      (b&(1<<bsize*8 - 1)))) { // b negative
 	bvc	smult2		;  if (a < 0) { //a = -a, sign-extended to sizes
 	
 	sec			;   register uint8_t c = 1, y;
 	ldy	#0		;   for (y = 0; y < asize; y++) {
--	lda	(ZPMULT),y	;
+	php			;    // vvv push
+-	plp			;    // ^^^ pull
+	lda	(ZPMULT),y	;
 	eor	#$ff		;    register uint9_t sum = ~(a[y]) + c;
 	adc	#0		;    c = sum >> 8;
+	php			;    // vvv push
 	sta	(ZPMULA),y	;    awork[y] = sum & 0xff;
-	;lda	#0		;
-	;sta	(ZPMULT),y	;    a[y] = 0; // will hold final sum
 	iny			;
 	tya			;
 	cmp @w	V0LOCAL	;//asize;
-	bcc	-		;   }
+	bcc	-		;
+	pla			;   }
 	
 -	lda	#$00		;   for (; y < sizes; y++)
 	sta	(ZPMULA),y	;    awork[y] = 0x00;
@@ -189,7 +193,7 @@ smult	lda @w	sgnba		;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	tya			;
 	cmp @w	V2LOCAL	;//sizes;
 	
-	lda @w	sgnba		;  }
+	lda @w	V4LOCAL	;//sgnba;  }
 smult2	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
 
 	lda	ZPMULT		;
@@ -199,16 +203,20 @@ smult2	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
 
 	sec			;   register uint8_t c = 1, y;
 	ldy	#0		;   for (y = 0; y < bsize; y++) {
--	lda	(ZPMULT),y	;
+	php			;    // vvv push
+-	plp			;    // ^^^ pull
+	lda	(ZPMULT),y	;
 	eor	#$ff		;    register uint9_t sum = ~(b[y]) + c;
 	adc	#0		;    c = (sum & 0x100) >> 8;
+	php			;    // vvv push
 	sta	(ZPMULB),y	;    bwork[y] = sum & 0xff;
 	;lda	#0		;
 	;sta	(ZPMULT),y	;    b[y] = 0; // will hold final sum
 	iny			;
 	tya			;
 	cmp @w	V1LOCAL	;//bsize;
-	bcc	-		;   }
+	bcc	-		;    // ^^^ pull
+	pla			;   }
 
 	lda	ZPMULT		;
 	sec			;
@@ -224,8 +232,6 @@ usmult	ldy	#0		;
 	bne	-		;  // will hold final sum
 	
 usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
-	lda	#0		;
-	pha			;  uint8_t bnon0; // vvv push
 	clc			;
 -	dey			;  uint?_t* b = (uint?_t*) bwork;
 	lda	(ZPMULB),y	;
@@ -259,9 +265,33 @@ lshifta	ldy @w	V2LOCAL	;//sizes;
 	lda	(ZPMULA),y	;
 	rol			;
 	sta	(ZPMULA),y	;
+	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
 	tya			;
 	bne	-		;  a <<= 1;
 	beq	usmult2		; }
 
-postmul
+muldone	lda @w	V4LOCAL	;//sgnba;
+	beq	posprod		;
+	eor	#$c0		;
+	beq	posprod		; if ((sgnba & 0x80) >> 7 !=(sgnba & 0x40) >> 6)
+
+	sec			;
+	ldy	#0		;
+	php			;  // vvv push
+-	plp			;  // ^^^ pull
+	lda	(ZPMULT),y	;
+	eor	#$ff		;
+	adc	#0		;
+	php			;  // vvv push
+	sta	(ZPMULT),y	;
+	iny			;
+	tya			;
+	cmp @w	V0LOCAL	;//asize;
+	bcc	-		;  // ^^^ pull
+	pla			;  a = -a;
+	
+posprod	ldy @w	V6LOCAL	;//rtval;
+	POPVARS			; return y = rtval;
+	rts			;}
+
 	;; TO-DO: allow y to specify starting value (if known not all bits used)
