@@ -39,7 +39,7 @@
 ZPMULT = $76
 ZPMULB = $78
 ZPMULA = $7a
-	
+
 USIGNED	= 0x00
 SIGNED	= 0x80
 
@@ -51,7 +51,7 @@ SIGN16	= SIGNED | USIGN16	; bit 7 set
 
 USIGN32	= 0x03			; 4 bytes - 1 = 3
 SIGN32	= SIGNED | USIGN32	; bit 7 set
-	
+
 mult	.macro
 	tya			;inline register int8_t mult(int8_t i,int8_t j){
 	ora	#(\2|\1)&SIGNED	; register int8_t y;
@@ -89,7 +89,7 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	pha			; uint8_t sgnba = 0; // V4LOCAL
 	pha			; uint8_t bnon0 = 0; // V5LOCAL
 	pha			; uint8_t rtval = 0; // V6LOCAL
-	
+
 	;; check for stack underrun: end of args must still be on page 1
 	txa			;
 	;clc			;
@@ -113,11 +113,19 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	lda	(ZPMULT),y	;
 	rol			;
 	ror @w	V4LOCAL	;//sgnba; sgnba |= (a & (1<<(asize*8 - 1))) ? 0x40 : 0;
-	
-	ldy @w	V2LOCAL	;//sizes;
+
+	ldy @w	V1LOCAL	;//bsize;
+	lda	#0		;
 -	pha			;
 	dey			;
+	bne	-		;
+	ldy @w	V0LOCAL	;//asize;
+	dey			;
+-	lda 	(ZPMULT),y	;
+	pha			;
+	tya			;
 	bne	-		; uint8_t awork[sizes];
+	
 	txa			;
 	pha			; // vvv push
 	tsx			;
@@ -127,29 +135,36 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 	lda	#1		;
 	sta	1+ZPMULA	;
 	pla			; // ^^^ pull
-	tax			; uint?_t* zpmula = (void*) awork;
-	
+	tax			; uint?_t* zpmula = (void*) awork; *zpmula = a;
+
 	;; find MSB of b, store sign bit, allocate bsize of stack space for it
 	ldy @w	V2LOCAL	;//sizes;
 	dey			;
 	lda	(ZPMULT),y	;
 	rol			;
 	ror @w	V4LOCAL	;//sgnba; sgnba |= (a & (1<<(asize*8 - 1))) ? 0x80 : 0;
-	
+
+	lda @w	V0LOCAL	;//asize;
+	clc			;
+	adc	ZPMULT		;
+	sta	ZPMULB		;
+	lda	#1		;
+	sta	ZPMULB+1	;
+
 	ldy @w	V1LOCAL	;//bsize;
--	pha			;
 	dey			;
+-	lda	(ZPMULB),y	;
+	pha			;
+	tya			;
 	bne	-		; uint8_t bwork[bsize];
 	txa			;
 	pha			; // vvv push
 	tsx			;
 	inx			;
 	sta	ZPMULB		;
-	lda	#1		;
-	sta	1+ZPMULB	;
 	pla			; // ^^^ pull
-	tax			; uint?_t* zpmulb = (void*) bwork;
-	
+	tax			; uint?_t* zpmulb = (void*) bwork; *zpmulb = b;
+
 	;; check for signed or unsigned mode
 	lda @w	V3LOCAL	;//savey;
 	and	#SIGNED		; if ((savey & SIGNED)  // signed mode requested
@@ -157,12 +172,12 @@ dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
 smult	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	beq	usmult		;      (b&(1<<bsize*8 - 1)))) { // b negative
 	bvc	smult2		;  if (a < 0) { //a = -a, sign-extended to sizes
-	
+
 	sec			;   register uint8_t c = 1, y;
 	ldy	#0		;   for (y = 0; y < asize; y++) {
 	php			;    // vvv push
 -	plp			;    // ^^^ pull
-	lda	(ZPMULT),y	;
+	lda	(ZPMULA),y	;
 	eor	#$ff		;    register uint9_t sum = ~(a[y]) + c;
 	adc	#0		;    c = sum >> 8;
 	php			;    // vvv push
@@ -171,14 +186,15 @@ smult	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	tya			;
 	cmp @w	V0LOCAL	;//asize;
 	bcc	-		;
-	pla			;   }
-	
+	pla			;   } // ^^^ pull
+
 -	lda	#$00		;   for (; y < sizes; y++)
 	sta	(ZPMULA),y	;    awork[y] = 0x00;
 	iny			;
 	tya			;
 	cmp @w	V2LOCAL	;//sizes;
-	
+	bcc	-		;
+
 	lda @w	V4LOCAL	;//sgnba;  }
 smult2	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
 
@@ -208,15 +224,14 @@ smult2	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
 	sec			;
 	sbc @w	V0LOCAL	;//asize;  }
 	sta	ZPMULT		; }
-
-usmult	ldy	#0		;
--	lda	#0		;
-	sta	(ZPMULT),y	;
-	iny			;
-	tya			;
-	cmp @w	V2LOCAL	;//sizes; a = b = 0;
-	bne	-		;  // will hold final sum
 	
+usmult	ldy @w	V2LOCAL	;//sizes;
+	lda	#0		;
+-	sta	(ZPMULT),y	; a = b = 0; // will hold final sum
+	dey			;
+	tya			;
+	bne	-		; 
+
 usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
 	clc			;
 -	dey			;  uint?_t* b = (uint?_t*) bwork;
@@ -228,7 +243,7 @@ usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
 	tya			;
 	bne	-		;  *b >>= 1;
 	pla			;  // ^^^ pull
-	
+
 	bcs	+		;  if (c == 0) {
 	beq	muldone		;   if (*b == 0) break;
 	bcc	lshifta		;  } else {
@@ -244,7 +259,7 @@ usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
 	cmp @w	V2LOCAL	;//sizes;
 	bcs	-		;
 	pla			; // ^^^ pull
-	
+
 lshifta	ldy @w	V2LOCAL	;//sizes;
 	clc			;
 -	dey			;
@@ -275,7 +290,7 @@ muldone	lda @w	V4LOCAL	;//sgnba;
 	cmp @w	V0LOCAL	;//asize;
 	bcc	-		;  // ^^^ pull
 	pla			;  a = -a;
-	
+
 posprod	ldy @w	V6LOCAL	;//rtval;
 	POPVARS			; return y = rtval;
 	rts			;}
