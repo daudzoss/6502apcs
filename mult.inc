@@ -1,6 +1,6 @@
 ;;; 	                    7    6    5    4       3    2    1    0      
 ;;;                      +-------------------------------------------+
-;;;              ...     | variables in context of caller of dmult() |
+;;;              ...     |variables in context of caller of multwrp()|
 ;;;                      +-------------------------------------------+
 ;;;A1FUNCT+asize+bsize-1 |      MSB of b  ---------> MSB of product  |
 ;;;                      +-------------------------------------------+
@@ -18,9 +18,9 @@
 ;;;                      +---------------------+---------------------+
 ;;;              $0101+X | old value of X e.g. SP'' from a prior time|
 ;;;                      +-------------------------------------------+
-;;; $0100|X    = $0100+X | high byte of return address from dmult()  |
+;;; $0100|X    = $0100+X | high byte of return address from multwrp()|
 ;;;                      +-------------------------------------------+
-;;;              $00ff+X | low byte of return address from dmult()   |
+;;;              $00ff+X | low byte of return address from multwrp() |
 ;;;                      +-------------------------------------------+
 ;;; $0100|SP'  = $00fe+X |                   asize                   | V0LOCAL
 ;;;                      +-------------------------------------------+
@@ -59,13 +59,13 @@ mult	.macro
 	lda	#(\2<<4)|(\1&15);
 	pha			; uint8_t sizes = ((j & 0x0f)<<4) | (i & 0x0f);
 	FUNCALL			;
-	jsr	dmult		; // stack bytes used:  1  i+1 j+1
-	FUNRETN			; return y = dmult(y, sizes, a, b);// push b 1st
+	jsr	multwrp		; // stack bytes used:  1  i+1 j+1
+	FUNRETN			; return y = multwrp(y, sizes, a, b);// push b,a
 	pla			;} // mult()
 	.endm
 
-dmult	lda 	A0FUNCT	;//sizes;register int8_t dmult(register int8_t y,uint8_t
-	and	#0x0f		;                 sizes, uint?_t a, uint?_t b) {
+multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
+	and	#0x0f		;         uint8_t sizes, uint?_t a, uint?_t b) {
 	clc			;
 	adc	#1		;
 	pha			; uint8_t asize = (size& 0x0f)+1; // V0LOCAL
@@ -233,6 +233,8 @@ usmult	ldy @w	V2LOCAL	;//sizes;
 	bne	-		; 
 
 usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
+	lda	#0		;
+	sta @w	V5LOCAL	;//bnon0;
 	clc			;
 -	dey			;  uint?_t* b = (uint?_t*) bwork;
 	lda	(ZPMULB),y	;
@@ -242,23 +244,24 @@ usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
 	sta @w	V5LOCAL	;//bnon0;
 	tya			;
 	bne	-		;  *b >>= 1;
-	pla			;  // ^^^ pull
 
 	bcs	+		;  if (c == 0) {
-	beq	muldone		;   if (*b == 0) break;
+	lda @w	V5LOCAL	;//bnon0;   if (*b == 0)
+	beq	muldone		;    break;
 	bcc	lshifta		;  } else {
 +	ldy	#0		;
 	clc			;
-	php			; // vvv push
--	plp			; // ^^^ pull
+	php			;  // vvv push
+-	plp			;  // ^^^ pull
 	lda	(ZPMULA),y	;
 	adc	(ZPMULT),y	;
 	sta	(ZPMULT),y	;  *((uint?_t*) &a) += *((uint?_t*) awork);
+	php			;  // vvv push
 	iny			;
-	php			; // vvv push
+	tya			;
 	cmp @w	V2LOCAL	;//sizes;
-	bcs	-		;
-	pla			; // ^^^ pull
+	bcc	-		;
+	pla			;  // ^^^ pull
 
 lshifta	ldy @w	V2LOCAL	;//sizes;
 	clc			;
@@ -274,7 +277,7 @@ lshifta	ldy @w	V2LOCAL	;//sizes;
 muldone	lda @w	V4LOCAL	;//sgnba;
 	beq	posprod		;
 	eor	#$c0		;
-	beq	posprod		; if ((sgnba & 0x80) >> 7 !=(sgnba & 0x40) >> 6)
+	beq	posprod		; if (((sgnba&0x80) >> 7) != ((sgnba&0x40) >> 6))
 
 	sec			;
 	ldy	#0		;
