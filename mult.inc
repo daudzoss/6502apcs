@@ -40,16 +40,16 @@ ZPMULT = $76
 ZPMULB = $78
 ZPMULA = $7a
 
-USIGNED	= 0x00
-SIGNED	= 0x80
+USIGNED	= $00
+SIGNED	= $80
 
-USIGN8	= 0x00			; 1 byte - 1 = 0
+USIGN8	= $00			; 1 byte - 1 = 0
 SIGN8	= SIGNED | USIGN8	; bit 7 set
 
-USIGN16	= 0x01			; 2 bytes - 1 = 1
+USIGN16	= $01			; 2 bytes - 1 = 1
 SIGN16	= SIGNED | USIGN16	; bit 7 set
 
-USIGN32	= 0x03			; 4 bytes - 1 = 3
+USIGN32	= $03			; 4 bytes - 1 = 3
 SIGN32	= SIGNED | USIGN32	; bit 7 set
 
 mult	.macro
@@ -66,8 +66,8 @@ mult	.macro
 	.endm
 	;; TO-DO: allow y to specify something useful in bits 0-6
 
-multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
-	and	#0x0f		;         uint8_t sizes, uint?_t a, uint?_t b) {
+multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
+	and	#$0f		;         uint8_t sizes, uint?_t a, uint?_t b) {
 	clc			;
 	adc	#1		; // <= 16 so c==0
 	pha			; uint8_t asize = (size& 0x0f)+1; // V0LOCAL
@@ -96,9 +96,10 @@ multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	txa			;
 	;clc			;
 	adc @w	V2LOCAL	;//sizes;
-	bcs	posprod		;
-	cmp	#$fe		; if (x + sizes + 2 > 0x00ff)
-	bcs	posprod		;  return y;
+	bcc	+		;
+-	jmp	posprod		;
++	cmp	#$fe		; if (x + sizes + 2 > 0x00ff)
+	bcs	-		;  return y;
 
 	;; check for stack overrun: need sizes+10 stack bytes left for VnLOCAL's
 	txa			;
@@ -170,7 +171,7 @@ multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	;; check for signed or unsigned mode
 	lda @w	V3LOCAL	;//savey; if ((savey & SIGNED)  // signed mode requested
 	bpl	usmult		;     &&                        // and
-smult	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
+smult:	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	beq	usmult		;      (b&(1<<bsize*8 - 1)))) { // b negative
 
 	and	#$40		;
@@ -199,7 +200,7 @@ smult	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	lda @w	V4LOCAL	;//sgnba;  }
 	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
 	
-smult2	lda	ZPMULT		;
+smult2:	lda	ZPMULT		;
 	clc			;
 	adc @w	V0LOCAL	;//asize;
 	sta	ZPMULT		;
@@ -226,14 +227,14 @@ smult2	lda	ZPMULT		;
 	sbc @w	V0LOCAL	;//asize;  }
 	sta	ZPMULT		; }
 	
-usmult	ldy @w	V2LOCAL	;//sizes;
+usmult:	ldy @w	V2LOCAL	;//sizes;
 	lda	#0		;
 -	sta	(ZPMULT),y	; a = b = 0; // will hold final sum
 	dey			;
 	tya			;
 	bne	-		; 
 
-usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
+usmult2:ldy @w	V1LOCAL	;//bsize; while (1) {
 	lda	#0		;
 	sta @w	V5LOCAL	;//bnon0;
 	clc			;
@@ -264,7 +265,7 @@ usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
 	bcc	-		;
 	pla			;  // ^^^ pull
 
-lshifta	ldy	#0		;
+lshifta:ldy	#0		;
 	clc			;
 	php			;  // vvv push
 -	plp			;  // ^^^ pull
@@ -280,7 +281,7 @@ lshifta	ldy	#0		;
 	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
 	bcs	usmult2		; }
 
-muldone	lda @w	V4LOCAL	;//sgnba;
+muldone:lda @w	V4LOCAL	;//sgnba;
 	beq	posprod		;
 	eor	#$c0		;
 	beq	posprod		; if (((sgnba&0x80) >> 7) != ((sgnba&0x40) >> 6))
@@ -300,7 +301,7 @@ muldone	lda @w	V4LOCAL	;//sgnba;
 	bcc	-		;  // ^^^ pull
 	pla			;  a = -a;
 
-posprod	ldy @w	V6LOCAL	;//rtval;
+posprod:ldy @w	V6LOCAL	;//rtval;
 	POPVARS			; return y = rtval;
 	rts			;}
 
