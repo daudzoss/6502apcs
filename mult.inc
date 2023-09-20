@@ -106,10 +106,11 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	sec			;
 	sbc	V2LOCAL	;//sizes;
 	cmp	#$a		; if (x - sizes < 10)
-	bcc	posprod		;  return y;
+	bcs	+		;
+	jmp	posprod		;  return y;
 
 	;; find msb of a, store sign bit, allocate asize+bsize of stack space
-	ADRHA	ZPMULT		;
++	ADRHA	ZPMULT		;
 	ADRLA	ZPMULT,1	;
 	ldy @w	V0LOCAL	;//asize;
 	dey			;
