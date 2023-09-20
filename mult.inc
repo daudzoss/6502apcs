@@ -54,6 +54,7 @@ SIGN32	= SIGNED | USIGN32	; bit 7 set
 
 mult	.macro
 	tya			;inline register int8_t mult(int8_t i,int8_t j){
+	and	#~SIGNED	;
 	ora	#(\2|\1)&SIGNED	; register int8_t y;
 	tay			; y = (j | i) & 0x80; // signed if either signed
 	lda	#(\2<<4)|(\1&15);
@@ -63,18 +64,19 @@ mult	.macro
 	FUNRETN			; return y = multwrp(y, sizes, a, b);// push b,a
 	pla			;} // mult()
 	.endm
+	;; TO-DO: allow y to specify something useful in bits 0-6
 
 multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	and	#0x0f		;         uint8_t sizes, uint?_t a, uint?_t b) {
 	clc			;
-	adc	#1		;
+	adc	#1		; // <= 16 so c==0
 	pha			; uint8_t asize = (size& 0x0f)+1; // V0LOCAL
 	lda 	A0FUNCT	;//sizes;
 	lsr			;
 	lsr			;
 	lsr			;
 	lsr			;
-	clc			;
+	;clc			;
 	adc	#1    		; // <= 16 so c==0
 	pha			; uint8_t bsize = ((size& 0xf0)>>4)+1;// V1LOCAL
 	;clc			;
@@ -102,7 +104,7 @@ multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	txa			;
 	sec			;
 	sbc	V2LOCAL	;//sizes;
-	cmp	#0x0a		; if (x - sizes < 10)
+	cmp	#$a		; if (x - sizes < 10)
 	bcc	posprod		;  return y;
 
 	;; find msb of a, store sign bit, allocate asize+bsize of stack space
@@ -142,7 +144,7 @@ multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	dey			;
 	lda	(ZPMULT),y	;
 	rol			;
-	ror @w	V4LOCAL	;//sgnba; sgnba |= (a & (1<<(asize*8 - 1))) ? 0x80 : 0;
+	ror @w	V4LOCAL	;//sgnba; sgnba |= (b & (1<<(bsize*8 - 1))) ? 0x80 : 0;
 
 	lda @w	V0LOCAL	;//asize;
 	clc			;
@@ -166,13 +168,13 @@ multwrp	lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	tax			; uint?_t* zpmulb = (void*) bwork; *zpmulb = b;
 
 	;; check for signed or unsigned mode
-	lda @w	V3LOCAL	;//savey;
-	and	#SIGNED		; if ((savey & SIGNED)  // signed mode requested
+	lda @w	V3LOCAL	;//savey; if ((savey & SIGNED)  // signed mode requested
 	bpl	usmult		;     &&                        // and
 smult	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	beq	usmult		;      (b&(1<<bsize*8 - 1)))) { // b negative
-	bvc	smult2		;  if (a < 0) { //a = -a, sign-extended to sizes
 
+	and	#$40		;
+	beq	smult2		;  if (a < 0) { //a = -a, sign-extended to sizes
 	sec			;   register uint8_t c = 1, y;
 	ldy	#0		;   for (y = 0; y < asize; y++) {
 	php			;    // vvv push
@@ -194,11 +196,10 @@ smult	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	tya			;
 	cmp @w	V2LOCAL	;//sizes;
 	bcc	-		;
-
 	lda @w	V4LOCAL	;//sgnba;  }
-smult2	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
-
-	lda	ZPMULT		;
+	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
+	
+smult2	lda	ZPMULT		;
 	clc			;
 	adc @w	V0LOCAL	;//asize;
 	sta	ZPMULT		;
@@ -263,16 +264,21 @@ usmult2	ldy @w	V1LOCAL	;//bsize; while (1) {
 	bcc	-		;
 	pla			;  // ^^^ pull
 
-lshifta	ldy @w	V2LOCAL	;//sizes;
+lshifta	ldy	#0		;
 	clc			;
--	dey			;
+	php			;  // vvv push
+-	plp			;  // ^^^ pull
+	dey			;
 	lda	(ZPMULA),y	;
 	rol			;
+	php			;  // vvv push
 	sta	(ZPMULA),y	;
-	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
 	tya			;
-	bne	-		;  a <<= 1;
-	beq	usmult2		; }
+	cmp @w	V2LOCAL	;//sizes;
+	bcc	-		;  a <<= 1;
+	pla			;  // ^^^ pull
+	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
+	bcs	usmult2		; }
 
 muldone	lda @w	V4LOCAL	;//sgnba;
 	beq	posprod		;
@@ -290,7 +296,7 @@ muldone	lda @w	V4LOCAL	;//sgnba;
 	sta	(ZPMULT),y	;
 	iny			;
 	tya			;
-	cmp @w	V0LOCAL	;//asize;
+	cmp @w	V2LOCAL	;//sizes;
 	bcc	-		;  // ^^^ pull
 	pla			;  a = -a;
 
@@ -298,4 +304,4 @@ posprod	ldy @w	V6LOCAL	;//rtval;
 	POPVARS			; return y = rtval;
 	rts			;}
 
-	;; TO-DO: allow y to specify starting value (if known not all bits used)
+
