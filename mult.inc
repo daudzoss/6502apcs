@@ -36,10 +36,6 @@
 ;;;                      +-------------------------------------------+
 ;;;              $00f8+X |                   rtval                   | V6LOCAL
 
-ZPMULT = $76
-ZPMULB = $78
-ZPMULA = $7a
-
 USIGNED	= $00
 SIGNED	= $80
 
@@ -57,7 +53,7 @@ mult	.macro
 	and	#~SIGNED	;
 	ora	#(\2|\1)&SIGNED	; register int8_t y;
 	tay			; y = (j | i) & 0x80; // signed if either signed
-	lda	#(\2<<4)|(\1&15);
+	lda #((\2<<4)|(\1&$0f))&$ff;
 	pha			; uint8_t sizes = ((j & 0x0f)<<4) | (i & 0x0f);
 	FUNCALL			;
 	jsr	multwrp		; // stack bytes used:  1  i+1 j+1
@@ -304,6 +300,7 @@ muldone:lda @w	V4LOCAL	;//sgnba;
 
 posprod:ldy @w	V6LOCAL	;//rtval;
 	POPVARS			; return y = rtval;
+ brk ; FIXME: top of stack is somehow $0095 for RTS,  not $1195!
 	rts			;}
 
 

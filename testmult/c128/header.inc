@@ -1,0 +1,4 @@
+ZPMULT	= $ac
+ZPMULA	= $24
+ZPMULB	= $26
+BASIC	= $1c00
