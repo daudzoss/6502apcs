@@ -130,6 +130,7 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	pha			; // vvv push
 	tsx			;
 	inx			;
+	inx			;
 	stx	ZPMULA	  	;
 	lda	#1		;
 	sta	1+ZPMULA	;
@@ -160,13 +161,13 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	pha			; // vvv push
 	tsx			;
 	inx			;
+	inx			;
 	stx	ZPMULB		;
 	pla			; // ^^^ pull
 	tax			; uint?_t* zpmulb = (void*) bwork; *zpmulb = b;
 
 	;; check for signed or unsigned mode
 	lda @w	V3LOCAL	;//savey; if ((savey & SIGNED)  // signed mode requested
-  brk
 	bpl	usmult		;     &&                        // and
 smult:	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	beq	usmult		;      (b&(1<<bsize*8 - 1)))) { // b negative
@@ -196,7 +197,7 @@ smult:	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	bcc	-		;
 	lda @w	V4LOCAL	;//sgnba;  }
 	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
-	
+ brk
 smult2:	lda	ZPMULT		;
 	clc			;
 	adc @w	V0LOCAL	;//asize;
@@ -230,7 +231,7 @@ usmult:	ldy @w	V2LOCAL	;//sizes;
 	sta	(ZPMULT),y	; a = b = 0; // will hold final sum
 	tya			;
 	bne	-		; 
-
+ brk
 usmult2:ldy @w	V1LOCAL	;//bsize; while (1) {
 	lda	#0		;
 	sta @w	V5LOCAL	;//bnon0;
