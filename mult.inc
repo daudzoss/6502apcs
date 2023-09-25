@@ -197,7 +197,7 @@ smult:	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	bcc	-		;
 	lda @w	V4LOCAL	;//sgnba;  }
 	bpl	usmult		;  if (b < 0) { //b = -b, not sign-extended
- brk
+
 smult2:	lda	ZPMULT		;
 	clc			;
 	adc @w	V0LOCAL	;//asize;
@@ -231,7 +231,7 @@ usmult:	ldy @w	V2LOCAL	;//sizes;
 	sta	(ZPMULT),y	; a = b = 0; // will hold final sum
 	tya			;
 	bne	-		; 
- brk
+
 usmult2:ldy @w	V1LOCAL	;//bsize; while (1) {
 	lda	#0		;
 	sta @w	V5LOCAL	;//bnon0;
