@@ -12,6 +12,38 @@ start	FUNCALL			;// give frame pointer x a valid initial value
 
 	.include "mult.inc"
 
+putbin:	tya			;
+	pha			;
+	ldy	#8		;
+-	rol @w	V0LOCAL		;
+	lda	#"0"		;
+	adc	#0		;
+	jsr	$ffd2		;
+	dey			;
+	bne	-		;
+	POPVARS			;
+	rts			;
+
+putnyb:	and	#$0f		;
+	ora	#"0"		;
+	cmp	#1+"9"		;
+	bcc	+		;
+	clc			;
+	adc	#"a"-"9"-1	;
++	jsr	$ffd2		;
+	rts			;
+
+puthex:	tya			;
+	pha			;
+	tya			;
+	lsr			;
+	lsr			;
+	lsr			;
+	lsr			;
+	jsr	putnyb		;
+	pla			;
+	jmp	putnyb		;
+
 main:	nop			;
 test0:	lda	#10		;
 	pha			;
