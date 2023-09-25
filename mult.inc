@@ -130,8 +130,7 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	pha			; // vvv push
 	tsx			;
 	inx			;
-	txa			;
-	sta	ZPMULA	  	;
+	stx	ZPMULA	  	;
 	lda	#1		;
 	sta	1+ZPMULA	;
 	pla			; // ^^^ pull
@@ -161,7 +160,7 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	pha			; // vvv push
 	tsx			;
 	inx			;
-	sta	ZPMULB		;
+	stx	ZPMULB		;
 	pla			; // ^^^ pull
 	tax			; uint?_t* zpmulb = (void*) bwork; *zpmulb = b;
 
