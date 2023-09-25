@@ -44,8 +44,7 @@ puthex:	tya			;
 	pla			;
 	jmp	putnyb		;
 
-main:	nop			;
-test0:	lda	#10		;
+main:	lda	#10		;
 	pha			;
 	pha			;
 	mult	USIGN8,USIGN8	;
@@ -53,10 +52,10 @@ test0:	lda	#10		;
 	tay			;
 	pla			;
 	cpy	#100		;
-	beq	test1		;
+	beq	+		;
 	brk
 
-test1:	lda	#10		;
++	lda	#10		;
 	pha			;
 	pha			;
 	mult	SIGN8,USIGN8	;
@@ -64,10 +63,10 @@ test1:	lda	#10		;
 	tay			;
 	pla			;
 	cpy	#100		;
-	beq	test2		;
+	beq	+		;
 	brk
 
-test2:	lda	#10		;
++	lda	#10		;
 	pha			;
 	pha			;
 	mult	USIGN8,SIGN8	;
@@ -75,10 +74,10 @@ test2:	lda	#10		;
 	tay			;
 	pla			;
 	cpy	#100		;
-	beq	test3		;
+	beq	+		;
 	brk			;
 
-test3:	lda	#10		;
++	lda	#10		;
 	pha			;
 	pha			;
 	mult	SIGN8,SIGN8	;
@@ -86,8 +85,26 @@ test3:	lda	#10		;
 	tay			;
 	pla			;
 	cpy	#100		;
-	beq	test4		;
+	beq	+
 	brk			;
 
-test4:	nop			;
-exit:	rts			;
++	lda	#31416>>8	;
+	pha			;
+	lda	#31416&$ff	;
+	pha			;
+	mult	USIGN16,USIGN16	;
+	pla			;
+	cpy	#(986965056&$000000ff)>>0
+	beq	+		;
+	brk			;
+	cpy	#(986965056&$0000ff00)>>8
+	beq	+		;
+	brk			;
+	cpy	#(986965056&$00ff0000)>>16
+	beq	+		;
+	brk			;
+	cpy	#(986965056&$ff000000)>>24
+	beq	+		;
+	brk			;
+	
++	rts			;

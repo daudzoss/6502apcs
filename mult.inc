@@ -165,21 +165,42 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	stx	ZPMULB		;
 	pla			; // ^^^ pull
 	tax			; uint?_t* zpmulb = (void*) bwork; *zpmulb = b;
- ldy #0
+ lda #"a"
+ jsr $ffd2
+ lda #"="
+ jsr $ffd2
+ ldy @w V2LOCAL
+- dey
+ tya
+ pha
  lda (ZPMULA),y	
  tay
  FUNCALL
- jsr puthex
+ jsr putbin
  FUNRETN
- lda #"*"
+ pla
+ tay
+ bne - 
+ lda #$d
  jsr $ffd2
- ldy #0
+	
+ lda #"b"
+ jsr $ffd2
+ lda #"="
+ jsr $ffd2
+ ldy @w V1LOCAL
+- dey
+ tya
+ pha
  lda (ZPMULB),y	
  tay
  FUNCALL
- jsr puthex
+ jsr putbin
  FUNRETN
- lda #"="
+ pla
+ tay
+ bne -
+ lda #$d
  jsr $ffd2
 
 	;; check for signed or unsigned mode
@@ -293,15 +314,21 @@ lshifta:ldy	#0		;
 	bcc	-		;  awork <<= 1;
 	pla			;  // ^^^ pull
 	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
- ;ldy #0
- ;lda (ZPMULT),y	
- ;tay
- ;FUNCALL
- ;jsr putbin
- ;FUNRETN
- ;lda #$d
- ;jsr $ffd2
- ;sec
+ ldy @w V2LOCAL
+- dey
+ tya
+ pha
+ lda (ZPMULT),y	
+ tay
+ FUNCALL
+ jsr putbin
+ FUNRETN
+ pla
+ tay
+ bne -
+ lda #$d
+ jsr $ffd2
+ sec
 	bcs	usmult2		; }
 
 muldone:lda @w	V4LOCAL	;//sgnba;
@@ -325,23 +352,22 @@ muldone:lda @w	V4LOCAL	;//sgnba;
 	pla			;  a = -a;
 
 posprod:ldy @w	V6LOCAL	;//rtval;
+
  ldy @w V2LOCAL
- dey
+- dey
+ tya
+ pha
  lda (ZPMULT),y	
  tay
  FUNCALL
  jsr puthex
  FUNRETN
- ldy @w V2LOCAL
- dey
- dey
- lda (ZPMULT),y	
+ pla
  tay
- FUNCALL
- jsr puthex
- FUNRETN
+ bne -
  lda #$d
  jsr $ffd2
+
 merror:	POPVARS			; return y = rtval;
 	rts			;}
 
