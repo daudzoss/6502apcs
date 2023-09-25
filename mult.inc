@@ -165,6 +165,22 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	stx	ZPMULB		;
 	pla			; // ^^^ pull
 	tax			; uint?_t* zpmulb = (void*) bwork; *zpmulb = b;
+ ldy #0
+ lda (ZPMULA),y	
+ tay
+ FUNCALL
+ jsr puthex
+ FUNRETN
+ lda #"*"
+ jsr $ffd2
+ ldy #0
+ lda (ZPMULB),y	
+ tay
+ FUNCALL
+ jsr puthex
+ FUNRETN
+ lda #"="
+ jsr $ffd2
 
 	;; check for signed or unsigned mode
 	lda @w	V3LOCAL	;//savey; if ((savey & SIGNED)  // signed mode requested
@@ -226,8 +242,8 @@ smult2:	lda	ZPMULT		;
 	sta	ZPMULT		; }
 	
 usmult:	ldy @w	V2LOCAL	;//sizes;
-	lda	#0		;
--	dey			;
+-	lda	#0		;
+	dey			;
 	sta	(ZPMULT),y	; a = b = 0; // will hold final sum
 	tya			;
 	bne	-		; 
@@ -277,6 +293,15 @@ lshifta:ldy	#0		;
 	bcc	-		;  awork <<= 1;
 	pla			;  // ^^^ pull
 	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
+ ;ldy #0
+ ;lda (ZPMULT),y	
+ ;tay
+ ;FUNCALL
+ ;jsr putbin
+ ;FUNRETN
+ ;lda #$d
+ ;jsr $ffd2
+ ;sec
 	bcs	usmult2		; }
 
 muldone:lda @w	V4LOCAL	;//sgnba;
@@ -300,8 +325,24 @@ muldone:lda @w	V4LOCAL	;//sgnba;
 	pla			;  a = -a;
 
 posprod:ldy @w	V6LOCAL	;//rtval;
+ ldy @w V2LOCAL
+ dey
+ lda (ZPMULT),y	
+ tay
+ FUNCALL
+ jsr puthex
+ FUNRETN
+ ldy @w V2LOCAL
+ dey
+ dey
+ lda (ZPMULT),y	
+ tay
+ FUNCALL
+ jsr puthex
+ FUNRETN
+ lda #$d
+ jsr $ffd2
 merror:	POPVARS			; return y = rtval;
- brk ; FIXME: top of stack is somehow $0095 for RTS,  not $1195!
 	rts			;}
 
 
