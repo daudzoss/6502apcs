@@ -93,17 +93,17 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	;clc			;
 	adc @w	V2LOCAL	;//sizes;
 	bcc	+		;
--	jmp	posprod		;
+-	jmp	merror		;
 +	cmp	#$fe		; if (x + sizes + 2 > 0x00ff)
 	bcs	-		;  return y;
 
 	;; check for stack overrun: need sizes+10 stack bytes left for VnLOCAL's
 	txa			;
 	sec			;
-	sbc	V2LOCAL	;//sizes;
+	sbc @w	V2LOCAL	;//sizes;
 	cmp	#$a		; if (x - sizes < 10)
 	bcs	+		;
-	jmp	posprod		;  return y;
+	jmp	merror		;  return y;
 
 	;; find msb of a, store sign bit, allocate asize+bsize of stack space
 +	ADRHA	ZPMULT		;
@@ -167,6 +167,7 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 
 	;; check for signed or unsigned mode
 	lda @w	V3LOCAL	;//savey; if ((savey & SIGNED)  // signed mode requested
+  brk
 	bpl	usmult		;     &&                        // and
 smult:	lda @w	V4LOCAL	;//sgnba;     ((a&(1<<asize*8 - 1)) ||  // a negative or
 	beq	usmult		;      (b&(1<<bsize*8 - 1)))) { // b negative
@@ -226,8 +227,8 @@ smult2:	lda	ZPMULT		;
 	
 usmult:	ldy @w	V2LOCAL	;//sizes;
 	lda	#0		;
--	sta	(ZPMULT),y	; a = b = 0; // will hold final sum
-	dey			;
+-	dey			;
+	sta	(ZPMULT),y	; a = b = 0; // will hold final sum
 	tya			;
 	bne	-		; 
 
@@ -266,14 +267,14 @@ lshifta:ldy	#0		;
 	clc			;
 	php			;  // vvv push
 -	plp			;  // ^^^ pull
-	dey			;
 	lda	(ZPMULA),y	;
 	rol			;
 	php			;  // vvv push
 	sta	(ZPMULA),y	;
+	iny			;
 	tya			;
 	cmp @w	V2LOCAL	;//sizes;
-	bcc	-		;  a <<= 1;
+	bcc	-		;  awork <<= 1;
 	pla			;  // ^^^ pull
 	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
 	bcs	usmult2		; }
@@ -299,7 +300,7 @@ muldone:lda @w	V4LOCAL	;//sgnba;
 	pla			;  a = -a;
 
 posprod:ldy @w	V6LOCAL	;//rtval;
-	POPVARS			; return y = rtval;
+merror:	POPVARS			; return y = rtval;
  brk ; FIXME: top of stack is somehow $0095 for RTS,  not $1195!
 	rts			;}
 
