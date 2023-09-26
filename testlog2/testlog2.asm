@@ -25,21 +25,27 @@ putbin:	tya			;
 	rts			;
 
 putnyb:	and	#$0f		;
-	ora	#"0"		;
-	cmp	#1+"9"		;
+	bne	+		;
 	bcc	+		;
+	lda	#" "		;
+	bcs	putnyb2		;
++	ora	#"0"		;
+	cmp	#1+"9"		;
+	bcc	putnyb2		;
 	clc			;
 	adc	#"a"-"9"-1	;
-+	jsr	$ffd2		;
+putnyb2	jsr	$ffd2		;
 	rts			;
 
 puthex:	tya			;
 	pha			;
 	tya			;
+	php			;
 	lsr			;
 	lsr			;
 	lsr			;
 	lsr			;
+	plp			;
 	jsr	putnyb		;
 	pla			;
 	jmp	putnyb		;
@@ -59,6 +65,101 @@ main:	nop
 	beq	+		;
 	brk			;
 
++	lda	#64		;
+	pha			;
+	pha			;
+	ldy	#16		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	pla			;
+	pla			;
+	cpy	#14		;
+	beq	+		;
+	brk			;
+
++	lda	#32		;
+	pha			;
+	pha			;
+	ldy	#16		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	pla			;
+	pla			;
+	cpy	#13		;
+	beq	+		;
+	brk			;
+
++	lda	#16		;
+	pha			;
+	pha			;
+	ldy	#16		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	pla			;
+	pla			;
+	cpy	#12		;
+	beq	+		;
+	brk			;
+
++	lda	#8		;
+	pha			;
+	pha			;
+	ldy	#16		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	pla			;
+	pla			;
+	cpy	#11		;
+	beq	+		;
+	brk			;
+
++	lda	#4		;
+	pha			;
+	pha			;
+	ldy	#16		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	pla			;
+	pla			;
+	cpy	#10		;
+	beq	+		;
+	brk			;
+
++	lda	#2		;
+	pha			;
+	pha			;
+	ldy	#16		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	pla			;
+	pla			;
+	sec			;
+	jsr	puthex		;
+	cpy	#9		;
+	beq	+		;
+	brk			;
+
++	lda	#1		;
+	pha			;
+	pha			;
+	ldy	#16		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	pla			;
+	pla			;
+	sec			;
+	jsr	puthex		;
+	cpy	#8		;
+	beq	+		;
+	brk			;
+
 +	lda	#128		;
 	pha			;
 	ldy	#8		;
@@ -66,6 +167,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#7		;
 	beq	+		;
@@ -78,6 +180,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#6		;
 	beq	+		;
@@ -90,6 +193,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#5		;
 	beq	+		;
@@ -102,6 +206,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#4		;
 	beq	+		;
@@ -114,6 +219,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#3		;
 	beq	+		;
@@ -126,6 +232,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#2		;
 	beq	+		;
@@ -138,6 +245,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#1		;
 	beq	+		;
@@ -150,6 +258,7 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
+	sec			;
 	jsr	puthex		;
 	cpy	#0		;
 	beq	+		;
@@ -162,7 +271,6 @@ main:	nop
 	jsr	log2		;
 	FUNRETN			;
 	pla			;
-	jsr	puthex		;
 	tya			;
 	bmi	+		;
 	brk			;
