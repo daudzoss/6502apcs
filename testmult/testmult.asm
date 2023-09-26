@@ -44,7 +44,10 @@ puthex:	tya			;
 	pla			;
 	jmp	putnyb		;
 
-main:	lda	#10		;
+main:	nop	
+	
+	;; 10 * 10
+	lda	#10		;
 	pha			;
 	pha			;
 	mult	USIGN8,USIGN8	;
@@ -55,6 +58,7 @@ main:	lda	#10		;
 	beq	+		;
 	brk
 
+	;; +10 * 10
 +	lda	#10		;
 	pha			;
 	pha			;
@@ -66,6 +70,7 @@ main:	lda	#10		;
 	beq	+		;
 	brk
 
+	;; 10 * +10
 +	lda	#10		;
 	pha			;
 	pha			;
@@ -77,6 +82,7 @@ main:	lda	#10		;
 	beq	+		;
 	brk			;
 
+	;; +10 * +10
 +	lda	#10		;
 	pha			;
 	pha			;
@@ -88,6 +94,48 @@ main:	lda	#10		;
 	beq	+
 	brk			;
 
+	;; same quantity as above but 32-bit unsigned, squared
++	lda	#0		;
+	pha
+	pha			;
+	pha			;
+	lda	#10		;
+	pha			;
+	lda	#0		;
+	pha
+	pha			;
+	pha			;
+	lda	#10		;
+	pha			;
+	mult	USIGN32,USIGN32	;
+	pla			;
+	tay			;
+	pla			;
+	beq	+		;
+	brk			;
++	pla			;
+	beq	+		;
+	brk			;
++	pla			;
+	beq	+		;
+	brk			;
++	pla			;
+	beq	+		;
+	brk			;
++	pla			;
+	beq	+		;
+	brk			;
++	pla			;
+	beq	+		;
+	brk			;
++	pla			;
+	beq	+		;
+	brk			;
++	cpy	#100		;
+	beq	+		;
+	brk			;
+
+	;; 16-bit unsigned, squared (pi*10000)
 +	lda	#31416>>8	;
 	pha			;
 	lda	#31416&$ff	;
@@ -110,6 +158,40 @@ main:	lda	#10		;
 	cmp	#(986965056&$ff000000)>>24
 	beq	+		;
 	brk			;
+
+	;; -64 * 2 in 16 bits x 8 bits
++	lda	#-1		;
+	pha			;
+	lda	#-64		;
+	pha			;
+	lda	#2		;
+	pha			;
+	mult	SIGN16,SIGN8	;
+	pla			;
+	cmp	#$80		;
+	beq	+		;
+	brk			;
+	pla			;
+	cmp	#$ff		;
+	beq	+		;
+	brk			;
+	pla			;
+	cmp	#$ff		;
+	beq	+		;
+	brk			;
 	
+	;; -64 * 2 should be -128 and this works in 16 bits
++	lda	#-64		;
+	pha			;
+	lda	#2		;
+	pha			;
+	mult	SIGN8,SIGN8	;
+	pla			;
+	cmp	#$80		;
+	beq	+		;
+	brk			;
+	pla			;
+	beq	+		;
+	brk
 +	POPVARS			;
 	rts			;
