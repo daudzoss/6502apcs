@@ -193,5 +193,29 @@ main:	nop
 	pla			;
 	beq	+		;
 	brk
+
+	;; try 128-bit * 128-bit for grins
++	lda	#-1		;
+	ldy	#128/8		;
+-	pha			;
+	dey			;
+	bne	-		;
+	;lda	#-1		;
+	ldy	#128/8		;
+-	pha			;
+	dey			;
+	bne	-		;
+	mult	SIGN128,SIGN128	;
+	pla			;
+	cmp	#1		;
+	beq	+		;
+	brk			;
++	ldy	#128/8 * 2 - 1	;
+-	pla			;
+	beq	+		;
+	brk			;
++	dey			;
+	bne	-		;
+
 +	POPVARS			;
 	rts			;
