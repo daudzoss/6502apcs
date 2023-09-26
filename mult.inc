@@ -53,7 +53,7 @@ mult	.macro
 	and	#~SIGNED	;
 	ora	#(\2|\1)&SIGNED	; register int8_t y;
 	tay			; y = (j | i) & 0x80; // signed if either signed
-	lda #((\2<<4)|(\1&$0f))&$ff;
+	lda #((\1<<4)|(\2&$0f))&$ff;
 	pha			; uint8_t sizes = ((j & 0x0f)<<4) | (i & 0x0f);
 	FUNCALL			;
 	jsr	multwrp		; // stack bytes used:  1  i+1 j+1
