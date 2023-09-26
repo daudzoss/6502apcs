@@ -92,19 +92,24 @@ main:	lda	#10		;
 	pha			;
 	lda	#31416&$ff	;
 	pha			;
+	lda	#31416>>8	;
+	pha			;
+	lda	#31416&$ff	;
+	pha			;
 	mult	USIGN16,USIGN16	;
 	pla			;
-	cpy	#(986965056&$000000ff)>>0
+	cmp	#(986965056&$000000ff)>>0
 	beq	+		;
 	brk			;
-	cpy	#(986965056&$0000ff00)>>8
+	cmp	#(986965056&$0000ff00)>>8
 	beq	+		;
 	brk			;
-	cpy	#(986965056&$00ff0000)>>16
+	cmp	#(986965056&$00ff0000)>>16
 	beq	+		;
 	brk			;
-	cpy	#(986965056&$ff000000)>>24
+	cmp	#(986965056&$ff000000)>>24
 	beq	+		;
 	brk			;
 	
-+	rts			;
++	POPVARS			;
+	rts			;
