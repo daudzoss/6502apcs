@@ -45,8 +45,48 @@ SIGN8	= SIGNED | USIGN8	; bit 7 set
 USIGN16	= $01			; 2 bytes - 1 = 1
 SIGN16	= SIGNED | USIGN16	; bit 7 set
 
+USIGN24	= $02			; 3 bytes - 1 = 2
+SIGN24	= SIGNED | USIGN24	; bit 7 set
+	
 USIGN32	= $03			; 4 bytes - 1 = 3
 SIGN32	= SIGNED | USIGN32	; bit 7 set
+
+USIGN40	= $04
+SIGN40	= SIGNED | USIGN40
+
+USIGN48	= $05
+SIGN48	= SIGNED | USIGN48
+
+USIGN56	= $06
+SIGN56	= SIGNED | USIGN56
+
+USIGN64	= $07
+SIGN64	= SIGNED | USIGN64
+
+USIGN72	= $08
+SIGN72	= SIGNED | USIGN72
+
+USIGN_a	= $09
+SIGN_a	= SIGNED | USIGN_a
+
+USIGN_b	= $0a
+SIGN_b	= SIGNED | USIGN_b
+
+USIGN_c	= $0b
+SIGN_c	= SIGNED | USIGN_c
+
+USIGN_d	= $0c
+SIGN_d	= SIGNED | USIGN_d
+
+USIGN_e	= $0d
+SIGN_e	= SIGNED | USIGN_e
+
+USIGN_f	= $0e
+SIGN_f	= SIGNED | USIGN_f
+
+USIGN80	= $0f
+SIGN80	= SIGNED | USIGN80
+SIGN128	= SIGN80	
 
 mult	.macro
 	tya			;inline register int8_t mult(int8_t i,int8_t j){
@@ -165,43 +205,43 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	stx	ZPMULB		;
 	pla			; // ^^^ pull
 	tax			; uint?_t* zpmulb = (void*) bwork; *zpmulb = b;
- lda #"a"
- jsr $ffd2
- lda #"="
- jsr $ffd2
- ldy @w V2LOCAL
-- dey
- tya
- pha
- lda (ZPMULA),y	
- tay
- FUNCALL
- jsr putbin
- FUNRETN
- pla
- tay
- bne - 
- lda #$d
- jsr $ffd2
+; lda #"a"
+; jsr $ffd2
+; lda #"="
+; jsr $ffd2
+; ldy @w V2LOCAL
+;- dey
+; tya
+; pha
+; lda (ZPMULA),y	
+; tay
+; FUNCALL
+; jsr putbin
+; FUNRETN
+; pla
+; tay
+; bne - 
+; lda #$d
+; jsr $ffd2
 	
- lda #"b"
- jsr $ffd2
- lda #"="
- jsr $ffd2
- ldy @w V1LOCAL
-- dey
- tya
- pha
- lda (ZPMULB),y	
- tay
- FUNCALL
- jsr putbin
- FUNRETN
- pla
- tay
- bne -
- lda #$d
- jsr $ffd2
+; lda #"b"
+; jsr $ffd2
+; lda #"="
+; jsr $ffd2
+; ldy @w V1LOCAL
+;- dey
+; tya
+; pha
+; lda (ZPMULB),y	
+; tay
+; FUNCALL
+; jsr putbin
+; FUNRETN
+; pla
+; tay
+; bne -
+; lda #$d
+; jsr $ffd2
 
 	;; check for signed or unsigned mode
 	lda @w	V3LOCAL	;//savey; if ((savey & SIGNED)  // signed mode requested
@@ -314,21 +354,21 @@ lshifta:ldy	#0		;
 	bcc	-		;  awork <<= 1;
 	pla			;  // ^^^ pull
 	inc @w	V6LOCAL	;//rtval;  rtval++; // number of bits in result
- ldy @w V2LOCAL
-- dey
- tya
- pha
- lda (ZPMULT),y	
- tay
- FUNCALL
- jsr putbin
- FUNRETN
- pla
- tay
- bne -
- lda #$d
- jsr $ffd2
- sec
+; ldy @w V2LOCAL
+;- dey
+; tya
+; pha
+; lda (ZPMULT),y	
+; tay
+; FUNCALL
+; jsr putbin
+; FUNRETN
+; pla
+; tay
+; bne -
+; lda #$d
+; jsr $ffd2
+; sec
 	bcs	usmult2		; }
 
 muldone:lda @w	V4LOCAL	;//sgnba;
@@ -353,22 +393,21 @@ muldone:lda @w	V4LOCAL	;//sgnba;
 
 posprod:ldy @w	V6LOCAL	;//rtval;
 
- ldy @w V2LOCAL
-- dey
- tya
- pha
- lda (ZPMULT),y	
- tay
- FUNCALL
- jsr puthex
- FUNRETN
- pla
- tay
- bne -
- lda #$d
- jsr $ffd2
+; ldy @w V2LOCAL
+;- dey
+; tya
+; pha
+; lda (ZPMULT),y	
+; tay
+; FUNCALL
+; jsr puthex
+; FUNRETN
+; pla
+; tay
+; bne -
+; lda #$d
+; jsr $ffd2
 
 merror:	POPVARS			; return y = rtval;
 	rts			;}
-
 
