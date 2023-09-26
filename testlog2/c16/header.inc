@@ -1,0 +1,3 @@
+ZPLOG	= $b8
+
+BASIC	= $1000
