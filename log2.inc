@@ -32,7 +32,38 @@ nexty:	dey			; for (y /= 8; y; y--) // each byte in argument
 	bne	-		;  }
 	tya			;
 	bne	nexty		;
-	dec @w	V0LOCAL	;//rtval; return -1; // all zeros
+	dec @w	V0LOCAL	;//rtval; return y = -1; // all zeros
 +	ldy @w	V0LOCAL	;//rtval;
 	POPVARS			;
-	rts			;}
+	rts			;} // log2()
+
+two2the	ADRHA	ZPLOG		;void two2the(register uint8_t y, vararg) {
+	ADRLA	ZPLOG,0		; uint8_t* zplog = &vararg;
+	tya			;
+	and	#$07		;
+	clc			;
+	adc	#1		;
+	pha			; uint8_t bitof = (y & 7) + 1; // V0LOCAL
+	tya			;
+	lsr			;
+	lsr			;
+	lsr			;
+	clc			;
+	adc	#1		;
+	pha			; uint8_t bytof = (y / 8) + 1; // V1LOCAL
+	tay			;
+-	dey			; for (y = bytof; y; y--)
+	lda	#0		;
+	sta	(ZPLOG),y	;  zplog[y-1] = 0; // vararg = 0, set bit below
+	tya			;
+	bne	-		;
+	;lda	#0		;
+	sec			;
+-	rol			;
+	dec @w	V0LOCAL	;//bitof;
+	bne	-		;
+	ldy @w	V1LOCAL	;//bytof;
+	dey			;
+	sta	(ZPLOG),y	; zplog[bytof-1] = 1 << (bitof-1);
+	POPVARS			;
+	rts			;} // two2the()
