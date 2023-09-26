@@ -120,8 +120,8 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	dey			;
 	bne	-		;
 	ldy @w	V0LOCAL	;//asize;
-	dey			;
--	lda 	(ZPMULT),y	;
+-	dey			;
+	lda 	(ZPMULT),y	;
 	pha			;
 	tya			;
 	bne	-		; uint8_t awork[sizes];
@@ -152,8 +152,8 @@ multwrp:lda 	A0FUNCT	;//sizes;register int8_t multwrp(register int8_t y,
 	sta	ZPMULB+1	;
 
 	ldy @w	V1LOCAL	;//bsize;
-	dey			;
--	lda	(ZPMULB),y	;
+-	dey			;
+	lda	(ZPMULB),y	;
 	pha			;
 	tya			;
 	bne	-		; uint8_t bwork[bsize];
