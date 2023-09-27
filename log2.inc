@@ -13,7 +13,7 @@
 
 log2:	ADRHA	ZPLOG		;register int8_t log2(register int8_t y, vararg)
 	ADRLA	ZPLOG,0		;{
-	tya			; uint8_t* zplog = &vararg;
+log2ptr:tya			; uint8_t* zplog = &vararg;
 	pha			; int8_t rtval = y; // floor(log2(vararg)) or -1
 	pha			; uint8_t z; // bits left to process within byte
 	lsr			;
