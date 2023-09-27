@@ -78,8 +78,11 @@ divwrp: lda 	A0FUNCT	;//sizes;register int8_t divwrp(register int8_t y,
 	stx	ZPDIVB		;
 	pla			; // ^^^ pull
 	tax			; uint?_t* zpdivb = (void*) bwork; *zpdivb = b;
+
+	lda @w	V3LOCAL	;//savey;
+	bpl	+	;
 	lda @w	V4LOCAL	;//sgnba;
-	bpl	+		; if (b < 0) {
+	bpl	+		; if (savey && (b < 0)) {
 	;ldy 	#0		;
 	sec			;
 -	lda	(ZPDIVB),y	;
@@ -132,8 +135,10 @@ divwrp: lda 	A0FUNCT	;//sizes;register int8_t divwrp(register int8_t y,
 	tax			; uint?_t* zpdiva = (void*) awork; *zpdiva = a;
 
 
+	lda @w	V3LOCAL	;//savey;
+	bpl	+	;
 	lda @w	V4LOCAL	;//sgnba;
-	bpl	+		; if (a < 0) {
+	bpl	+		; if (savey && (a < 0)) {
 	;ldy 	#0		;
 	sec			;
 -	lda	(ZPDIVA),y	;
@@ -170,5 +175,36 @@ usdiv:	ldy @w	V2LOCAL	;//sizes;
 	ADRLA	ZPLOG,1		;
 	ldy @w	V6LOCAL	;//rtval;
 	FUNCALL			;  // initial guess based on difference of logs
-	jsr	two2the		;  two2the(log2(*zpdivb) - log2(*zpdiva), a);
+	jsr	two2ptr		;  two2the(log2(*zpdivb) - log2(*zpdiva), a);
 	FUNRETN			;
+
+root0:	ldy @w	V2LOCAL	;//sizes;  do {
+	cpy	#16		;
+	bcs	btoobig		;   if (sizes < 16) {
+-	lda	(ZPDIV),y	;
+	pha			;
+	dey			;
+	bne	-		;
+	ldy @w	V0LOCAL	;//asize;
+-	lda	(ZPDIV),y	;
+	pha			;
+	dey			;
+	bne	-		;
+	
+	lda @w	V2LOCAL	;//bsize;
+	sec			;
+	sbc	#1		;
+	asl			;
+	asl			;
+	asl			;
+	asl			;
+	dec @w	V0LOCAL	;//asize;
+	ora @w	V0LOCAL	;//asize;
+	inc @w	V0LOCAL	;//asize;
+	pha			;    uint8_t sizes = 
+	
+	ldy	@w V3LOCAL;#USIGNED;;; FIXME: do we even need to worry about signs? we can make it mult()'s problem and just find the root of the function
+	FUNCALL			;
+	jsr	multwrp		;    uint?_t product = a/*latest guess*/ * awork;
+	FUNRETN			;
+
