@@ -52,7 +52,25 @@ puthex:	tya			;
 
 main:	nop	
 	
-	lda	#128		;
+	;; 32-bit inverse test
++	ldy	#30		;
+	lda	#0		;
+	pha			;
+	pha			;
+	pha			;
+	pha			;
+	FUNCALL			;
+	jsr	two2the		;
+	FUNRETN			;
+	ldy	#32		;
+	FUNCALL			;
+	jsr	log2		;
+	FUNRETN			;
+	cpy	#30		;
+	beq	+		;
+	brk			;
+	
++	lda	#128		;
 	pha			;
 	pha			;
 	ldy	#16		;

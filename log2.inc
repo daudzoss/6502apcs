@@ -3,9 +3,9 @@
 ;;;                      +---------------------+---------------------+
 ;;;              $0101+X | old value of X e.g. SP'' from a prior time|
 ;;;                      +-------------------------------------------+
-;;; $0100|X    = $0100+X | high byte of return address from multwrp()|
+;;; $0100|X    = $0100+X |  high byte of return address from log2()  |
 ;;;                      +-------------------------------------------+
-;;;              $00ff+X | low byte of return address from multwrp() |
+;;;              $00ff+X |  low byte of return address from log2()   |
 ;;;                      +-------------------------------------------+
 ;;;              $00fe+X |                   rtval                   | V0LOCAL
 ;;;                      +-------------------------------------------+
@@ -18,7 +18,7 @@ log2:	ADRHA	ZPLOG		;register int8_t log2(register int8_t y, vararg)
 	pha			; uint8_t z; // bits left to process within byte
 	lsr			;
 	lsr			;
-	lsr			;
+	lsr			; // y specifies bits in argument
 	tay			;
 nexty:	dey			; for (y /= 8; y; y--) // each byte in argument
 	lda	#8		;
@@ -37,6 +37,18 @@ nexty:	dey			; for (y /= 8; y; y--) // each byte in argument
 	POPVARS			;
 	rts			;} // log2()
 
+;;;                      +-------------------------------------------+
+;;; $0100|SP'' = $0102+X |                LSB of result              | A0FUNCT
+;;;                      +---------------------+---------------------+
+;;;              $0101+X | old value of X e.g. SP'' from a prior time|
+;;;                      +-------------------------------------------+
+;;; $0100|X    = $0100+X | high byte of return address from two2the()|
+;;;                      +-------------------------------------------+
+;;;              $00ff+X | low byte of return address from two2the() |
+;;;                      +-------------------------------------------+
+;;;              $00fe+X |                   bitof                   | V0LOCAL
+;;;                      +-------------------------------------------+
+
 two2the	ADRHA	ZPLOG		;void two2the(register uint8_t y, vararg) {
 	ADRLA	ZPLOG,0		; uint8_t* zplog = &vararg;
 	tya			;
@@ -48,22 +60,12 @@ two2the	ADRHA	ZPLOG		;void two2the(register uint8_t y, vararg) {
 	lsr			;
 	lsr			;
 	lsr			;
-	clc			;
-	adc	#1		;
-	pha			; uint8_t bytof = (y / 8) + 1; // V1LOCAL
-	tay			;
--	dey			; for (y = bytof; y; y--)
+	tay			; y /= 8; // byte to set nonzero
 	lda	#0		;
-	sta	(ZPLOG),y	;  zplog[y-1] = 0; // vararg = 0, set bit below
-	tya			;
-	bne	-		;
-	;lda	#0		;
 	sec			;
 -	rol			;
 	dec @w	V0LOCAL	;//bitof;
 	bne	-		;
-	ldy @w	V1LOCAL	;//bytof;
-	dey			;
-	sta	(ZPLOG),y	; zplog[bytof-1] = 1 << (bitof-1);
+	sta	(ZPLOG),y	; zplog[y-1] = 1 << (bitof-1);
 	POPVARS			;
 	rts			;} // two2the()
