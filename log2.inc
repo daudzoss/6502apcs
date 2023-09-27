@@ -49,9 +49,9 @@ nexty:	dey			; for (y /= 8; y; y--) // each byte in argument
 ;;;              $00fe+X |                   bitof                   | V0LOCAL
 ;;;                      +-------------------------------------------+
 
-two2the	ADRHA	ZPLOG		;void two2the(register uint8_t y, vararg) {
+two2the:ADRHA	ZPLOG		;void two2the(register uint8_t y, vararg) {
 	ADRLA	ZPLOG,0		; uint8_t* zplog = &vararg;
-	tya			;
+two2ptr:tya			;
 	and	#$07		;
 	clc			;
 	adc	#1		;
