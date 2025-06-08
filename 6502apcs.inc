@@ -59,9 +59,9 @@ FUNRETN	.macro			; // done immediately after rts from that jsr
 	tax
 	.endm
 	
-jsrAPCS	.macro	addr,lda=#0
+jsrAPCS	.macro	addr,opcode=tya,arg1=,arg2=
 	FUNCALL
-	lda	\lda
+	\opcode	\arg1 \arg2
 	jsr	\addr
 	FUNRETN
 	.endm
