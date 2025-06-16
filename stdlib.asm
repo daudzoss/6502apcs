@@ -35,8 +35,7 @@ putstck	pha		;//start;void putstck(register uint8_t a, // usually $00
 	cmp @w	V1LOCAL	;//stop	;   return; // '\0' hit before requested # chars
 	bcc	-		; }
 +	POPVARS			;
-	rts			;
-	brk			;}
+	rts			;} // putstck()
 
 putchar	tay			;inline void putchar(register uint8_t a) {
 	txa			; // a stashed in y
