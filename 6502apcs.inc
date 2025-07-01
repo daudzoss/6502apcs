@@ -65,6 +65,11 @@ jsrAPCS	.macro	addr,opcode=tya,arg1=,arg2=
 	jsr	\addr
 	FUNRETN
 	.endm
+	
+jsr_a_y	.macro	addr,temp
+	sta	\temp
+	jsrAPCS	\addr,lda,\temp
+	.endm
 
 ADRHV	.macro
 	lda	#$01
